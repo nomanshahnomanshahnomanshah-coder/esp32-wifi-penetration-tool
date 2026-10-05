@@ -1,0 +1,32 @@
+name: Build ESP32 Firmware
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build with ESP-IDF
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/project" \
+            -w /project \
+            espressif/idf:v4.1 \
+            idf.py -B build-redesign build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esp32-redesigned-firmware
+          if-no-files-found: error
+          path: |
+            build-redesign/*.bin
+            build-redesign/bootloader/bootloader.bin
+            build-redesign/partition_table/partition-table.bin
+            build-redesign/flasher_args.json
+            build-redesign/flash_project_args
